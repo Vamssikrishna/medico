@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+/* Quick‑commerce vibe: deep green + neon lime / chartreuse — Blinkit / Instamart inspired */
+:root {
+  --mr-bg: #f3fbf4;
+  --mr-bg-accent: #e8fde9;
+  --mr-ink: #0f172a;
+  --mr-brand: #0a5139;
+  --mr-brand-deep: #062e22;
+  --mr-lime: #dfff1a;
+  --mr-lime-hover: #e8ff47;
+}
+
+@theme inline {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--mr-bg);
+  color: var(--mr-ink);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 10% -20%, rgb(223 253 226 / 0.55), transparent),
+    radial-gradient(ellipse 80% 60% at 90% 0%, rgb(220 253 169 / 0.35), transparent),
+    linear-gradient(180deg, var(--mr-bg) 0%, rgb(239 251 239) 100%);
+  background-attachment: fixed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

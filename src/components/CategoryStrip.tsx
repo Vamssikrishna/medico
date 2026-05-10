@@ -1,0 +1,40 @@
+"use client";
+
+import Link from "next/link";
+import type { Category } from "@/lib/types";
+
+const chip: Record<string, string> = {
+  fever: "bg-gradient-to-br from-orange-400 to-rose-500 text-white",
+  "cold-cough": "bg-gradient-to-br from-sky-400 to-indigo-500 text-white",
+  diabetes: "bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white",
+  heart: "bg-gradient-to-br from-rose-500 to-red-600 text-white",
+  baby: "bg-gradient-to-br from-amber-300 to-orange-400 text-emerald-950",
+  skin: "bg-gradient-to-br from-teal-400 to-emerald-600 text-white",
+};
+
+export function CategoryStrip({ categories }: { categories: Category[] }) {
+  return (
+    <section className="space-y-4">
+      <div className="flex items-end justify-between">
+        <h2 className="text-lg font-bold tracking-tight text-neutral-900">Shop by need</h2>
+        <span className="text-xs font-semibold text-emerald-800/70">Swipe →</span>
+      </div>
+      <div className="scrollbar-none flex gap-3 overflow-x-auto pb-1">
+        {categories.map((c) => (
+          <Link
+            key={c.id}
+            href={`/search?q=${encodeURIComponent(c.slug)}`}
+            className="group min-w-[6.5rem] flex-shrink-0 rounded-2xl border-2 border-white bg-white p-3 text-center shadow-md shadow-emerald-900/5 transition hover:-translate-y-1 hover:border-[#dfff1a] hover:shadow-lg"
+          >
+            <div
+              className={`mx-auto flex h-12 w-12 items-center justify-center rounded-2xl text-xs font-black shadow-inner ${chip[c.slug] ?? "bg-gradient-to-br from-emerald-600 to-emerald-800 text-white"}`}
+            >
+              {c.abbr}
+            </div>
+            <div className="mt-2 text-[11px] font-bold leading-tight text-neutral-800">{c.name}</div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
