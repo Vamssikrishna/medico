@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useInventory } from "@/context/InventoryContext";
 import { useProfile } from "@/context/ProfileContext";
-import { getMedicineById } from "@/lib/mock/medicines";
-import { pharmacies } from "@/lib/mock/pharmacies";
 import { cartSubtotal, validateCart } from "@/lib/cart-validation";
+import { apiJson } from "@/lib/api-client";
 import type { Order } from "@/lib/types";
 
 const methods = [
@@ -22,6 +22,7 @@ const methods = [
 export default function CheckoutPage() {
   const router = useRouter();
   const { lines, clear } = useCart();
+  const { medicines, getMedicineById } = useInventory();
   const { user, guestMode, loginWithEmailOtp } = useAuth();
   const { profile, addDemoOrder } = useProfile();
   const [priority, setPriority] = useState(false);
@@ -32,8 +33,8 @@ export default function CheckoutPage() {
   const [otpVerified, setOtpVerified] = useState(false);
   const [deliveryOtp, setDeliveryOtp] = useState("");
 
-  const total = cartSubtotal(lines);
-  const issues = validateCart(lines);
+  const total = cartSubtotal(lines, medicines);
+  const issues = validateCart(lines, medicines);
 
   const orderPreview = useMemo(
     () =>
@@ -49,7 +50,7 @@ export default function CheckoutPage() {
           };
         })
         .filter((row): row is NonNullable<typeof row> => row !== null),
-    [lines],
+    [getMedicineById, lines],
   );
 
   async function verifyGuestOtp() {
@@ -98,21 +99,22 @@ export default function CheckoutPage() {
         setOtpHint(data.error ?? "Could not send code.");
         return;
       }
-      if (data.demoOtp) setOtpHint(`Code (demo): ${data.demoOtp}`);
-      else setOtpHint("Check your inbox for the code.");
+      setOtpHint("Check your inbox for the code.");
     } catch {
       setOtpHint("Unable to reach verification service.");
     }
   }
 
-  function placeOrder() {
+  async function placeOrder() {
     if (orderPreview.length === 0 || orderPreview.length !== lines.length) return;
-    const pharmacyName = pharmacies[0]?.name ?? "Partner pharmacy";
+    const pharmacyName = orderPreview
+      .map((item) => getMedicineById(item.medicineId)?.pharmacyName)
+      .find(Boolean) ?? "Partner pharmacy";
     const orderId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
     const delOtp =
       deliveryOtp || String(Math.floor(100000 + Math.random() * 900000));
     setDeliveryOtp(delOtp);
-    const eta = priority ? 12 : pharmacies[0]?.etaMin ?? 18;
+    const eta = priority ? 12 : Math.min(...orderPreview.map((item) => getMedicineById(item.medicineId)?.etaMin ?? 18));
     const order: Order = {
       id: orderId,
       placedAt: new Date().toISOString(),
@@ -124,7 +126,18 @@ export default function CheckoutPage() {
       riderName: "Ritu · MediRush partner",
       batchId: "B-" + Math.random().toString(36).slice(2, 6).toUpperCase(),
     };
-    addDemoOrder(order);
+    try {
+      const data = await apiJson<{ order: Order }>("/api/orders", {
+        method: "POST",
+        body: JSON.stringify({ items: lines, priority }),
+      });
+      addDemoOrder(data.order);
+      clear();
+      router.push(`/orders?id=${encodeURIComponent(data.order.id)}`);
+      return;
+    } catch {
+      addDemoOrder(order);
+    }
     clear();
     router.push(`/orders?id=${encodeURIComponent(orderId)}`);
   }
@@ -136,12 +149,16 @@ export default function CheckoutPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-neutral-900">Checkout</h1>
-        <p className="text-sm text-neutral-600">Inventory soft-hold · payments · OTP handoff demo.</p>
+        <p className="mr-chip mb-3">
+          <span className="mr-signal-dot" />
+          Checkout orchestration
+        </p>
+        <h1 className="text-4xl font-black tracking-tight text-neutral-950">Checkout</h1>
+        <p className="text-sm font-medium text-neutral-600">Inventory soft-hold · payments · OTP handoff demo.</p>
       </div>
 
       {issues.some((x) => x.type === "rx_required") && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-900">
+        <div className="rounded-3xl border border-rose-200 bg-rose-50/90 px-5 py-4 text-sm font-semibold text-rose-900 shadow-[0_18px_55px_-40px_rgb(225_29_72/0.65)]">
           Pending prescriptions flagged.{" "}
           <Link className="font-semibold underline" href="/prescriptions">
             Upload or attach e-Rx
@@ -151,8 +168,8 @@ export default function CheckoutPage() {
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold">Identity & session</h2>
+        <section className="space-y-4 rounded-3xl border border-emerald-950/10 bg-white/88 p-6 shadow-[0_18px_60px_-46px_rgb(6_46_34/0.75)] backdrop-blur">
+          <h2 className="text-lg font-black">Identity & session</h2>
           {user ? (
             <p className="text-sm text-neutral-700">
               Signed in as <span className="font-semibold">{user.email}</span>
@@ -168,32 +185,32 @@ export default function CheckoutPage() {
             </p>
           )}
           {!user && (
-            <div className="space-y-2 rounded-2xl border border-dashed border-neutral-200 p-4">
+            <div className="space-y-2 rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/45 p-4">
               <label className="text-xs font-semibold uppercase text-neutral-500">Email</label>
               <input
                 value={emailGate}
                 onChange={(e) => setEmailGate(e.target.value)}
-                className="w-full rounded-xl border px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-emerald-950/10 bg-white px-3 py-2 text-sm font-semibold"
                 placeholder="you@email.com"
               />
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={sendEmailDemo}
-                  className="rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white"
+                  className="rounded-full bg-emerald-950 px-4 py-2 text-xs font-black text-white"
                 >
                   Send demo OTP
                 </button>
                 <input
                   value={otpGate}
                   onChange={(e) => setOtpGate(e.target.value)}
-                  className="w-32 rounded-full border px-3 py-2 text-xs"
+                  className="w-32 rounded-full border border-emerald-950/10 bg-white px-3 py-2 text-xs font-semibold"
                   placeholder="OTP"
                 />
                 <button
                   type="button"
                   onClick={verifyGuestOtp}
-                  className="rounded-full border px-4 py-2 text-xs font-semibold"
+                  className="rounded-full border border-emerald-950/10 bg-white px-4 py-2 text-xs font-black"
                 >
                   Verify
                 </button>
@@ -207,9 +224,9 @@ export default function CheckoutPage() {
           </label>
         </section>
 
-        <section className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold">Delivery</h2>
-          <div className="rounded-2xl bg-neutral-50 p-4 text-sm text-neutral-700">
+        <section className="space-y-4 rounded-3xl border border-emerald-950/10 bg-white/88 p-6 shadow-[0_18px_60px_-46px_rgb(6_46_34/0.75)] backdrop-blur">
+          <h2 className="text-lg font-black">Delivery</h2>
+          <div className="rounded-2xl border border-emerald-950/10 bg-neutral-50/90 p-4 text-sm font-semibold text-neutral-700">
             {profile.addresses.find((a) => a.isDefault)?.line1}
             <div className="mt-1 text-xs text-neutral-500">
               {profile.addresses.find((a) => a.isDefault)?.city} ·{" "}
@@ -217,20 +234,19 @@ export default function CheckoutPage() {
             </div>
           </div>
           <p className="text-xs text-neutral-500">
-            Dynamic ETA engine factors traffic, weather APIs, rider density — mocked at {pharmacies[0]?.etaMin ?? 18}{" "}
-            min baseline.
+            Dynamic ETA engine factors traffic, rider density, and uploaded pharmacy inventory for the delivery baseline.
           </p>
         </section>
       </div>
 
-      <section className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">Payment</h2>
+      <section className="mr-glow-card rounded-3xl p-6">
+        <h2 className="text-lg font-black">Payment</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {methods.map((m) => (
             <label
               key={m}
-              className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm ${
-                method === m ? "border-emerald-500 bg-emerald-50" : "border-neutral-200"
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                method === m ? "border-[#dfff1a] bg-emerald-950 text-white shadow-[0_18px_45px_-34px_rgb(6_46_34/0.95)]" : "border-emerald-950/10 bg-white/75"
               }`}
             >
               <input type="radio" name="pay" checked={method === m} onChange={() => setMethod(m)} />
@@ -241,14 +257,14 @@ export default function CheckoutPage() {
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t pt-4">
           <div>
             <div className="text-sm text-neutral-500">Amount payable</div>
-            <div className="text-3xl font-bold text-emerald-800">₹{total}</div>
+            <div className="text-4xl font-black text-emerald-950">₹{total}</div>
           </div>
           <button
             type="button"
             disabled={!canPay}
             onClick={placeOrder}
-            className={`rounded-full px-8 py-3 text-sm font-semibold text-white ${
-              canPay ? "bg-neutral-900 hover:bg-neutral-800" : "bg-neutral-300"
+            className={`rounded-full px-8 py-3 text-sm font-black ${
+              canPay ? "bg-[#dfff1a] text-emerald-950 hover:bg-[#e8ff50]" : "bg-neutral-300 text-white"
             }`}
           >
             Pay & place order
@@ -262,7 +278,7 @@ export default function CheckoutPage() {
       </section>
 
       {deliveryOtp && (
-        <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-900">
+        <div className="rounded-3xl border border-emerald-200 bg-emerald-50/90 p-5 text-sm font-semibold text-emerald-900">
           Delivery OTP generated: <span className="font-mono text-lg font-bold">{deliveryOtp}</span> — share with rider
           at handoff.
         </div>

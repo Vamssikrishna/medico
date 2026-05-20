@@ -1,5 +1,4 @@
 import type { CartLine, Medicine } from "@/lib/types";
-import { getMedicineById } from "@/lib/mock/medicines";
 
 export type CartIssue = {
   type: "duplicate" | "interaction" | "dose" | "rx_required" | "age_restriction";
@@ -19,11 +18,11 @@ function approximateParacetamolDailyLimit(m: Medicine, qty: number) {
   return perTab * qty <= maxPerDayMg;
 }
 
-export function validateCart(lines: CartLine[]): CartIssue[] {
+export function validateCart(lines: CartLine[], catalog: Medicine[]): CartIssue[] {
   const issues: CartIssue[] = [];
   const meds = lines
     .map((l) => {
-      const m = getMedicineById(l.medicineId);
+      const m = catalog.find((item) => item.id === l.medicineId);
       return m ? { l, m } : null;
     })
     .filter((x): x is { l: CartLine; m: Medicine } => x !== null);
@@ -81,9 +80,9 @@ export function validateCart(lines: CartLine[]): CartIssue[] {
   return issues;
 }
 
-export function cartSubtotal(lines: CartLine[]) {
+export function cartSubtotal(lines: CartLine[], catalog: Medicine[]) {
   return lines.reduce((sum, line) => {
-    const m = getMedicineById(line.medicineId);
+    const m = catalog.find((item) => item.id === line.medicineId);
     if (!m) return sum;
     const price = m.discountedPrice ?? m.mrp;
     return sum + price * line.qty;

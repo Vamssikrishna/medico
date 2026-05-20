@@ -1,0 +1,12 @@
+---
+description: Prevent predefined catalogue and business data
+alwaysApply: true
+---
+
+# No Predefined Data
+
+- Do not add predefined medicines, tablets, pharmacies, orders, reminders, prescriptions, users, or other business records to the app.
+- Customer-facing catalogue data must come from pharmacy uploads or user-created records at runtime.
+- Empty states should clearly guide users to upload or create data instead of showing seed examples.
+- Demo-only operational UI may simulate status, timing, progress, or telemetry, but must not include hardcoded medicine/pharmacy catalogue entries.
+- If sample text is needed for placeholders, keep it generic, such as `Brand Name`, `Salt Name`, or `Pharmacy Name`.

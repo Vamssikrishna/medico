@@ -1,6 +1,6 @@
 # MediRush
 
-Quick-commerce–style pharmacy web app demo: gated sign-in, product search, cart, prescriptions flow, checkout, and order tracking. Built with **Next.js 16** (App Router), **React 19**, **TypeScript**, and **Tailwind CSS v4**.
+Professional pharmacy operating website built with the **MERN stack**: MongoDB, Express, React 19, and Node.js. The frontend is a Vite React SPA and the backend is an Express API with MongoDB persistence.
 
 **Repository:** [github.com/Vamssikrishna/medico](https://github.com/Vamssikrishna/medico)
 
@@ -10,6 +10,7 @@ Quick-commerce–style pharmacy web app demo: gated sign-in, product search, car
 
 - **Node.js** 20+ (recommended)
 - **npm** 10+
+- **MongoDB** running locally
 
 ---
 
@@ -25,37 +26,39 @@ npm install
 
 ### Environment variables
 
-Create **`.env.local`** in the **project root** (same folder as `package.json`). You can copy the example:
-
-```bash
-cp .env.example .env.local
-```
+Use the single **`.env.local`** file in the project root.
 
 | Variable | Description |
 |----------|-------------|
-| `NEXT_PUBLIC_APP_URL` | Public site URL (e.g. `http://localhost:3000`) |
-| `MEDIRUSH_DEMO_OTP` | Set to `true` to return `demoOtp` from the send-otp API in production builds (normally only in dev). |
+| `VITE_APP_URL` | Public site URL (e.g. `http://localhost:3000`) |
+| `VITE_API_URL` | Express API URL (e.g. `http://localhost:5000`) |
+| `PORT` | Express API port |
+| `MONGODB_URI` | MongoDB connection string |
+| `JWT_SECRET` | JWT signing secret |
+| `CORS_ORIGIN` | Allowed frontend origin |
+| `SMTP_*` | SMTP settings used to send OTP by email |
 
 Secrets live in `.env.local`; that file is **gitignored**.
 
 ### Scripts
 
 ```bash
-npm run dev      # Dev server → http://localhost:3000
-npm run build    # Production build
-npm run start    # Serve production build
+npm run dev      # Vite frontend + Express API
+npm run build    # Vite production build
+npm run start    # Vite preview + Express API
 npm run lint     # ESLint
 ```
 
 ---
 
-## How to use (demo)
+## How to use
 
-1. Open **`/auth/login`** — sign in with **email OTP** (development responses may include **`demoOtp`** in JSON), **Google / Apple** (demo stubs), or use **`/guest`** for a limited guest lane.
-2. Browse **Home**, **Search**, medicine detail pages, **Cart**, and **Checkout**.
-3. **`/prescriptions`** simulates uploads and OCR/review states (client-side demo).
+1. Start local MongoDB.
+2. Run `npm run dev`.
+3. Use the pharmacy inventory screen to upload medicines/tablets.
+4. Customer marketplace, cart, orders, prescriptions, and reminders use Mongo-backed API data only.
 
-**Note:** Catalogue, pharmacies, rankings, and payments are **mocked**. This is **not medical advice**.
+**Important:** There is no predefined catalogue or business data. Pharmacies must upload stock before customers can browse or order.
 
 ---
 
@@ -63,22 +66,22 @@ npm run lint     # ESLint
 
 ```
 src/
-  app/
-    (app)/           # Routes behind session cookie gate
-    (public)/        # /auth/login, /guest
-    api/auth/       # OTP send / verify (in-memory demo store)
-  components/       # Shell, header, search, cards, banners
-  context/          # Auth, cart, profile (localStorage + cookies)
-  lib/             # Types, mocks, search, cart validation
-  middleware.ts    # Requires mr_session cookie for protected routes
+  App.tsx          # Vite React SPA
+  main.tsx         # React entrypoint
+  styles.css       # Professional MERN frontend styling
+  lib/             # API client and shared types
+server/
+  index.js         # Express API
+  models/          # Mongoose models
+  routes/          # Auth, inventory, orders, prescriptions, reminders
 ```
 
 ---
 
 ## Security & production notes
 
-- Session gate uses an **`mr_session`** cookie (`user` | `guest`) set client-side — **upgrade** to signed **httpOnly** cookies and a real auth backend before production.
-- OTP is stored **in-memory** on the server in this demo — use **Redis** + rate limiting for real workloads.
+- OTP is sent by SMTP email only. Configure real SMTP credentials before testing sign-in.
+- OTP is stored in-memory on the server for now; use Redis plus rate limiting for production.
 - Do **not** commit `.env.local` or API keys.
 
 ---
@@ -91,4 +94,4 @@ This project is provided as-is for demonstration and portfolio use. Specify a li
 
 ## Acknowledgements
 
-Bootstrapped with [create-next-app](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Built as a MERN stack application with Vite React and Express.

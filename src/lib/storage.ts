@@ -6,6 +6,7 @@ const BIOS_KEY = "medirush_biometric_pref";
 const ORDERS_KEY = "medirush_orders";
 const RX_KEY = "medirush_prescriptions";
 const GUEST_KEY = "medirush_guest_lane";
+const INVENTORY_KEY = "medirush_pharmacy_inventory";
 
 export function readJson<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -32,4 +33,5 @@ export const storageKeys = {
   ORDERS_KEY,
   RX_KEY,
   GUEST_KEY,
+  INVENTORY_KEY,
 };

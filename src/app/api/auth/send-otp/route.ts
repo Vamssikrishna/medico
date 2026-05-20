@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { shouldExposeDemoOtp } from "@/lib/env-public";
+import { sendOtpEmail } from "@/server/email";
 import { setOtp } from "@/server/otp-store";
 
 export async function POST(req: Request) {
@@ -14,6 +14,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Invalid email" }, { status: 400 });
   }
   const code = setOtp(email);
-  const devPayload = shouldExposeDemoOtp() ? ({ demoOtp: code } as const) : ({} as const);
-  return NextResponse.json({ ok: true, message: "Verification code sent", ...devPayload });
+  try {
+    await sendOtpEmail(email, code);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Email delivery failed";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true, message: "Verification code sent to email" });
 }

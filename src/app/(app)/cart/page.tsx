@@ -3,35 +3,42 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
-import { getMedicineById } from "@/lib/mock/medicines";
+import { useInventory } from "@/context/InventoryContext";
 import { validateCart, cartSubtotal } from "@/lib/cart-validation";
 
 export default function CartPage() {
   const { lines, setQty, remove, clear } = useCart();
-  const issues = validateCart(lines);
-  const total = cartSubtotal(lines);
+  const { medicines, getMedicineById } = useInventory();
+  const issues = validateCart(lines, medicines);
+  const total = cartSubtotal(lines, medicines);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-900">Cart</h1>
-          <p className="text-sm text-neutral-600">Smart validation + prescription checks (demo).</p>
+          <p className="mr-chip mb-3">
+            <span className="mr-signal-dot" />
+            Validation engine
+          </p>
+          <h1 className="text-4xl font-black tracking-tight text-neutral-950">Cart</h1>
+          <p className="text-sm font-medium text-neutral-600">Smart validation + prescription checks (demo).</p>
         </div>
         <div className="flex gap-3">
           {lines.length > 0 && (
             <button
               type="button"
               onClick={() => clear()}
-              className="rounded-full border px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+              className="rounded-full border border-emerald-950/10 bg-white/70 px-4 py-2 text-sm font-bold hover:bg-white"
             >
               Clear
             </button>
           )}
           <Link
             href="/checkout"
-            className={`rounded-full px-6 py-2 text-sm font-semibold text-white ${
-              lines.length === 0 ? "pointer-events-none bg-neutral-300" : "bg-emerald-700 hover:bg-emerald-800"
+            className={`rounded-full px-6 py-2 text-sm font-black ${
+              lines.length === 0
+                ? "pointer-events-none bg-neutral-300 text-white"
+                : "bg-[#dfff1a] text-emerald-950 shadow-[0_16px_36px_-26px_rgb(6_46_34/0.95)] hover:bg-[#e8ff50]"
             }`}
           >
             Checkout
@@ -40,7 +47,7 @@ export default function CartPage() {
       </div>
 
       {issues.length > 0 && (
-        <div className="space-y-3 rounded-2xl border border-amber-300 bg-amber-50 p-4">
+        <div className="space-y-3 rounded-3xl border border-amber-300 bg-amber-50/90 p-4 shadow-[0_18px_55px_-38px_rgb(180_83_9/0.6)]">
           <h2 className="font-semibold text-amber-950">Safety checks</h2>
           <ul className="list-disc space-y-1 pl-5 text-sm text-amber-900">
             {issues.map((issue) => (
@@ -55,8 +62,8 @@ export default function CartPage() {
           {lines.length === 0 && (
             <p className="rounded-3xl border border-dashed bg-white px-8 py-12 text-neutral-600">
               Cart is empty.{" "}
-              <Link href="/search?q=fever" className="font-semibold text-emerald-700">
-                Browse OTC
+              <Link href="/partner/pharmacy" className="font-semibold text-emerald-700">
+                Upload pharmacy inventory
               </Link>
             </p>
           )}
@@ -67,7 +74,7 @@ export default function CartPage() {
             return (
               <article
                 key={line.medicineId}
-                className="flex gap-4 rounded-3xl border border-neutral-100 bg-white p-4 shadow-sm"
+              className="flex gap-4 rounded-3xl border border-emerald-950/10 bg-white/88 p-4 shadow-[0_18px_60px_-44px_rgb(6_46_34/0.75)] backdrop-blur"
               >
                 <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl">
                   <Image
@@ -90,7 +97,7 @@ export default function CartPage() {
                     <span className="text-neutral-500">Qty</span>
                     <button
                       type="button"
-                      className="h-9 w-9 rounded-full border"
+                      className="h-9 w-9 rounded-full border border-emerald-950/10 bg-white font-bold hover:bg-emerald-50"
                       onClick={() => setQty(line.medicineId, Math.max(0, line.qty - 1))}
                     >
                       −
@@ -98,7 +105,7 @@ export default function CartPage() {
                     <span className="font-mono">{line.qty}</span>
                     <button
                       type="button"
-                      className="h-9 w-9 rounded-full border"
+                      className="h-9 w-9 rounded-full border border-emerald-950/10 bg-white font-bold hover:bg-emerald-50"
                       onClick={() => setQty(line.medicineId, line.qty + 1)}
                     >
                       +
@@ -110,8 +117,8 @@ export default function CartPage() {
             );
           })}
         </section>
-        <aside className="h-fit rounded-3xl border border-emerald-100 bg-emerald-50/70 p-5">
-          <h2 className="text-lg font-semibold text-emerald-950">Order summary</h2>
+        <aside className="mr-glow-card h-fit rounded-3xl p-5">
+          <h2 className="text-lg font-black text-emerald-950">Order summary</h2>
           <dl className="mt-4 space-y-3 text-sm text-emerald-900">
             <div className="flex justify-between">
               <dt>To pay</dt>
@@ -123,12 +130,12 @@ export default function CartPage() {
             </div>
             <div className="flex justify-between text-xs opacity-75">
               <dt>Realtime inventory</dt>
-              <dd>Held for 120s — demo mode</dd>
+              <dd>Held from uploaded stock</dd>
             </div>
           </dl>
-          <ul className="mt-6 space-y-2 text-xs text-emerald-800/85">
-            <li>● Batch-ready routing for neighbouring orders · Multi-order batching (8.5)</li>
-            <li>● Delivery OTP at doorstep · Fraud checks queued</li>
+          <ul className="mt-6 space-y-2 text-xs font-semibold text-emerald-800/85">
+            <li>Batch-ready routing for neighbouring orders · Multi-order batching (8.5)</li>
+            <li>Delivery OTP at doorstep · Fraud checks queued</li>
           </ul>
         </aside>
       </div>

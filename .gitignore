@@ -30,9 +30,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env secrets local only — keep .env.example tracked
+# env secrets local only
 .env*
-!.env.example
 
 # vercel
 .vercel

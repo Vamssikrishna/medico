@@ -56,8 +56,7 @@ function LoginInner() {
         return;
       }
       setStep("otp");
-      if (data.demoOtp) setHint(`Development: verification code ${data.demoOtp}`);
-      else setHint("A verification code was sent to your email.");
+      setHint("A verification code was sent to your email.");
     } finally {
       setBusy(false);
     }
@@ -96,17 +95,21 @@ function LoginInner() {
   }
 
   const inputCls =
-    "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none ring-emerald-800/15 transition focus:border-emerald-800 focus:ring-2";
+    "w-full rounded-xl border border-emerald-950/10 bg-white/80 px-3 py-2.5 text-sm font-semibold outline-none ring-emerald-800/15 transition focus:border-emerald-800 focus:ring-2";
 
   return (
-    <div className="grid w-full max-w-5xl overflow-hidden rounded-2xl border-2 border-[#dfff1a]/40 bg-white shadow-[0_30px_80px_-28px_rgb(6_46_34/0.45)] md:grid-cols-[1.05fr_1fr]">
+    <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-white/88 shadow-[0_34px_100px_-48px_rgb(6_46_34/0.85)] backdrop-blur md:grid-cols-[1.05fr_1fr]">
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-900 p-10 text-white md:flex">
         <div className="pointer-events-none absolute -right-20 top-16 h-64 w-64 rounded-full bg-[#dfff1a]/25 blur-3xl" />
         <div className="pointer-events-none absolute -left-24 bottom-0 h-52 w-52 rounded-full bg-lime-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:30px_30px] opacity-35" />
         <div className="relative">
-          <p className="text-[11px] font-black uppercase tracking-[0.25em] text-[#dfff1a]">MediRush</p>
-          <h1 className="mt-6 text-3xl font-black leading-[1.1] tracking-tight">
-            Your quick-commerce pharmacy.
+          <p className="mr-chip mr-chip-on-dark">
+            <span className="mr-signal-dot" />
+            Secure session
+          </p>
+          <h1 className="mt-6 text-4xl font-black leading-[1.02] tracking-[-0.04em]">
+            Your quick-commerce pharmacy command center.
           </h1>
           <p className="mt-4 text-sm font-medium leading-relaxed text-emerald-100/90">
             OTP sign-in unlocks catalogue, OCR prescriptions, carts, checkout, riders — same energy as Blinkit / Instamart,
@@ -120,7 +123,7 @@ function LoginInner() {
             Minutes, not hours
           </div>
         </div>
-        <ul className="relative space-y-4 border-t border-white/10 pt-8 text-sm font-medium text-emerald-100/85">
+        <ul className="relative space-y-4 border-t border-white/10 pt-8 text-sm font-semibold text-emerald-100/85">
           <li className="flex gap-3">
             <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
             AES-256 at rest for PHI (configure with your cloud KMS).
@@ -143,7 +146,8 @@ function LoginInner() {
         </div>
 
         <div className="hidden md:block">
-          <h2 className="text-xl font-semibold text-neutral-900">Account access</h2>
+          <p className="mr-chip mb-3">Passwordless access</p>
+          <h2 className="text-2xl font-black tracking-tight text-neutral-950">Account access</h2>
           <p className="mt-1 text-sm text-neutral-600">Use your work email. Passwordless OTP.</p>
         </div>
 
@@ -168,7 +172,7 @@ function LoginInner() {
                 type="button"
                 disabled={busy || !email.trim()}
                 onClick={sendOtp}
-                className="w-full rounded-xl border-2 border-emerald-950 bg-[#dfff1a] py-2.5 text-sm font-black text-emerald-950 shadow-md hover:bg-[#e8ff50] disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-xl border border-emerald-950 bg-[#dfff1a] py-2.5 text-sm font-black text-emerald-950 shadow-[0_18px_38px_-24px_rgb(6_46_34/0.95)] hover:bg-[#e8ff50] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {busy ? "Sending…" : "Send verification code"}
               </button>
@@ -192,7 +196,7 @@ function LoginInner() {
                 type="button"
                 disabled={busy || code.length !== 6}
                 onClick={verify}
-                className="w-full rounded-xl bg-emerald-950 py-2.5 text-sm font-bold text-white shadow-md hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-xl bg-emerald-950 py-2.5 text-sm font-black text-white shadow-[0_18px_38px_-24px_rgb(6_46_34/0.95)] hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {busy ? "Verifying…" : "Verify & continue"}
               </button>
@@ -202,7 +206,7 @@ function LoginInner() {
             </div>
           )}
 
-          {hint && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{hint}</p>}
+          {hint && <p className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900">{hint}</p>}
 
           <div className="border-t border-neutral-100 pt-6">
             <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">Federated (demo)</p>

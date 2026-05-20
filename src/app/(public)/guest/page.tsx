@@ -24,9 +24,13 @@ export default function GuestPage() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-8 shadow-lg shadow-neutral-900/5">
-      <h1 className="text-xl font-semibold text-neutral-900">Guest access</h1>
-      <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+    <div className="mr-glow-card w-full max-w-md rounded-[2rem] p-8">
+      <p className="mr-chip mb-4">
+        <span className="mr-signal-dot" />
+        Urgent lane
+      </p>
+      <h1 className="text-2xl font-black tracking-tight text-neutral-950">Guest access</h1>
+      <p className="mt-2 text-sm font-medium leading-relaxed text-neutral-600">
         Limited session for urgent orders. Prescription items may require identity verification at checkout. Data is
         retained only for operational demo purposes.
       </p>
@@ -34,7 +38,7 @@ export default function GuestPage() {
         Contact for delivery updates
       </label>
       <input
-        className="mt-1.5 w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none ring-emerald-800/15 focus:border-emerald-800 focus:ring-2"
+        className="mt-1.5 w-full rounded-xl border border-emerald-950/10 bg-white/85 px-3 py-2.5 text-sm font-semibold outline-none ring-emerald-800/15 focus:border-emerald-800 focus:ring-2"
         value={contact}
         onChange={(e) => setContact(e.target.value)}
         placeholder="+91 … or name@organization.com"
@@ -44,7 +48,7 @@ export default function GuestPage() {
       <button
         type="button"
         onClick={start}
-        className="mt-6 w-full rounded-lg bg-neutral-900 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800"
+        className="mt-6 w-full rounded-xl bg-emerald-950 py-2.5 text-sm font-black text-white shadow-[0_18px_42px_-28px_rgb(6_46_34/0.95)] hover:bg-emerald-900"
       >
         Continue
       </button>

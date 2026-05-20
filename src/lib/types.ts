@@ -76,6 +76,10 @@ export type Medicine = {
   temperatureSensitive?: boolean;
   symptoms: string[];
   interactions: Array<{ with: string; message: string; severity: "info" | "warn" | "danger" }>;
+  pharmacyName?: string;
+  stockQty?: number;
+  etaMin?: number;
+  uploadedAt?: string;
 };
 
 export type Pharmacy = {

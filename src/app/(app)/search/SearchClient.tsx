@@ -5,16 +5,17 @@ import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { SmartSearchBar } from "@/components/SmartSearchBar";
 import { MedicineCard } from "@/components/MedicineCard";
-import { medicines } from "@/lib/mock/medicines";
+import { useInventory } from "@/context/InventoryContext";
 import { queryWasAdjusted, rankMedicines, typoCorrectDisplay } from "@/lib/search-engine";
 
 export default function SearchClient() {
   const params = useSearchParams();
+  const { medicines } = useInventory();
   const q = params.get("q") ?? "";
 
   const ranked = useMemo(
     () => rankMedicines(medicines, q, { distanceKm: 0.9, stockScore: 0.92, etaMin: 16 }),
-    [q],
+    [medicines, q],
   );
 
   return (
@@ -33,7 +34,8 @@ export default function SearchClient() {
       )}
       {!q && (
         <p className="text-sm text-neutral-500">
-          Start typing on the home hero or here — try <Link href="/search?q=paracitamol" className="font-medium text-emerald-700">paracitamol</Link>.
+          Start typing after a pharmacy uploads inventory, or go to{" "}
+          <Link href="/partner/pharmacy" className="font-medium text-emerald-700">Pharmacy</Link> to add tablets.
         </p>
       )}
       <div className="grid gap-4 md:grid-cols-2">
@@ -41,8 +43,10 @@ export default function SearchClient() {
           <MedicineCard key={m.id} m={m} />
         ))}
       </div>
-      {q && ranked.length === 0 && (
-        <p className="text-neutral-600">No direct matches — broaden your phrase or browse categories.</p>
+      {ranked.length === 0 && (
+        <p className="rounded-3xl border border-dashed border-emerald-300 bg-white/75 px-6 py-10 text-neutral-600">
+          No pharmacy-uploaded medicines found. Add inventory from the pharmacy partner dashboard first.
+        </p>
       )}
     </div>
   );
